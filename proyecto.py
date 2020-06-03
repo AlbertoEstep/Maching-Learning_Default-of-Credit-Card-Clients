@@ -43,7 +43,31 @@ df = pd.read_excel('datos/default of credit card clients.xls',
 print("Lectura completada.\n")
 print("El número de atributos actual es de: {}".format(df.shape[1]))
 
+def graf_bar(df, header, size):
+    col = np.array(df.iloc[:, df.columns.to_list().index(header)])
+    min = np.amin(col)
+    max = np.amax(col)
+    long = (max - min)/size
+    intervals = []
+    num = []
+    for i in range(0,size):
+        num.append(int(len(col[(min + i*long <= col) & (col < min + (i+1)*long)])))
+        intervals.append("[{},{})".format(round(min + i*long,1), round(min + (i+1)*long,1)))
+    num[-1] += len(col[col==max])
+    intervals[-1] = "[{},{}]".format(round(max-long,1), max)
+
+    print("Mostrando gráfica de barras asociada...")
+    plt.bar(intervals, num, align="center")
+    plt.xlabel("Intervalo")
+    plt.ylabel("Núm. instancias")
+    plt.title("Gráfica de barras de " + header)
+    plt.gcf().canvas.set_window_title("Proyecto AA")
+    plt.show()
+
+graf_bar(df, 'BILL_AMT1', 10)
+
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
 print("Estudiamos la variable EDUCATION\n")
 for i in df['EDUCATION'].unique():
     print("\t {} instancias del valor {}".format(df['EDUCATION'].value_counts()[i],i))
@@ -73,14 +97,14 @@ input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 print("Binarizamos las variables necesarias\n")
 df = pd.get_dummies(df, columns=['SEX', 'EDUCATION', 'MARRIAGE'])
 df.rename(columns={'SEX_1':'Hombre',
-                        'SEX_2':'Mujer',
-                        'EDUCATION_1':'Educacion_postgrado',
-                        'EDUCATION_2':'Educacion_universidad',
-                        'EDUCATION_3':'Educacion_secundaria',
-                        'EDUCATION_4':'Educacion_otros',
-                        'MARRIAGE_1':'Casado',
-                        'MARRIAGE_2':'Soltero',
-                        'MARRIAGE_3':'Otro_estado_civil'},
+                    'SEX_2':'Mujer',
+                    'EDUCATION_1':'Educacion_postgrado',
+                    'EDUCATION_2':'Educacion_universidad',
+                    'EDUCATION_3':'Educacion_secundaria',
+                    'EDUCATION_4':'Educacion_otros',
+                    'MARRIAGE_1':'Casado',
+                    'MARRIAGE_2':'Soltero',
+                    'MARRIAGE_3':'Otro_estado_civil'},
                inplace=True)
 df = pd.get_dummies(df, columns=['PAY_0', 'PAY_2', 'PAY_3', 'PAY_4', 'PAY_5', 'PAY_6'])
 print("El número de atributos actual es de: {}".format(df.shape[1]))
