@@ -51,14 +51,15 @@ def graf_bar(df, header, size):
     intervals = []
     num = []
     for i in range(0,size):
-        num.append(int(len(col[(min + i*long <= col) & (col < min + (i+1)*long)])))
-        intervals.append("[{},{})".format(round(min + i*long,1), round(min + (i+1)*long,1)))
+        num.append(len(col[(min + i*long <= col) & (col < min + (i+1)*long)]))
+        intervals.append("[{},{})".format(int(min + i*long), int(min + (i+1)*long)))
     num[-1] += len(col[col==max])
     intervals[-1] = "[{},{}]".format(round(max-long,1), max)
 
     print("Mostrando gráfica de barras asociada...")
     plt.bar(intervals, num, align="center")
     plt.xlabel("Intervalo")
+    plt.xticks(rotation=30)
     plt.ylabel("Núm. instancias")
     plt.title("Gráfica de barras de " + header)
     plt.gcf().canvas.set_window_title("Proyecto AA")
