@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# AA - Práctica 1 - UGR
+# AA - Proyecto Final - UGR
 # Authors: Alberto Estepa Fernández & Carlos Santiago Sánchez Muñoz
 # Date: 24/06/2020
 
@@ -15,6 +15,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def valores_perdidos(df):
@@ -33,16 +36,6 @@ def estudio(df):
     print('Valores perdidos:\n')
     print(missing_data[missing_data['Total'] > 0])
 
-print("--------------------------------------------------------------\n")
-print("----------              CLASIFICACIÓN              -----------\n")
-print("--------------------------------------------------------------\n")
-
-print("Leyendo los datos...", end=" ", flush=True)
-df = pd.read_excel('datos/default of credit card clients.xls',
-                   skiprows = 1, index_col = 'ID')
-print("Lectura completada.\n")
-print("El número de atributos actual es de: {}".format(df.shape[1]))
-
 def graf_bar(df, header, size):
     col = np.array(df.iloc[:, df.columns.to_list().index(header)])
     min = np.amin(col)
@@ -59,13 +52,49 @@ def graf_bar(df, header, size):
     print("Mostrando gráfica de barras asociada...")
     plt.bar(intervals, num, align="center")
     plt.xlabel("Intervalo")
-    plt.xticks(rotation=30)
+    plt.xticks(rotation=-65)
     plt.ylabel("Núm. instancias")
     plt.title("Gráfica de barras de " + header)
     plt.gcf().canvas.set_window_title("Proyecto AA")
     plt.show()
 
+print("--------------------------------------------------------------\n")
+print("----------              CLASIFICACIÓN              -----------\n")
+print("--------------------------------------------------------------\n")
+
+print("Leyendo los datos...", end=" ", flush=True)
+df = pd.read_excel('datos/default of credit card clients.xls',
+                   skiprows = 1, index_col = 'ID')
+print("Lectura completada.\n")
+print("El número de atributos actual es de: {}".format(df.shape[1]))
+
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+graf_bar(df, 'LIMIT_BAL', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'BILL_AMT1', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'BILL_AMT2', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'BILL_AMT3', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'BILL_AMT4', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'BILL_AMT5', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'BILL_AMT6', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'PAY_AMT1', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'PAY_AMT2', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'PAY_AMT3', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'PAY_AMT4', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'PAY_AMT5', 10)
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+graf_bar(df, 'PAY_AMT6', 10)
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
@@ -211,34 +240,102 @@ datos_preprocesados = preprocesador.fit_transform(X_train)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Entrenando el modelo lineal.", end=" ", flush=True)
-log = LogisticRegression(penalty='l2', # Regularización Ridge (L2)
-                                    solver = 'lbfgs', # Algoritmo a utilizar en el problema de optimización, aunque es
-                                                            # el dado por defecto
-                                    max_iter = 1000)
 
-log.fit(datos_preprocesados, y_train)
-print(log.score(datos_preprocesados, y_train))
-log.predict(X_test)
-print(log.score(X_test, y_test))
+# Fijamos la semilla
+np.random.seed(1)
+
+# Definimos el clasificador
+log = LogisticRegression(penalty='l1',
+                             dual = False,
+                             tol = 1e-4,
+                             fit_intercept = True,
+                             class_weight = None,
+                             random_state = None,
+                             solver = 'saga',
+                             max_iter = 1000,
+                             multi_class='auto',
+                             warm_start= False)
+
+log_pipe = Pipeline(steps=[('preprocesador', preprocesador),
+                      ('clf', log)])
+
+params_log = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
+
+grid = GridSearchCV(log_pipe, params_log, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
+grid.fit(X_train, y_train)
+clasificador = grid.best_estimator_
+E_val = 1 - grid.best_score_
+E_in = 1 - clasificador.score(X_train, y_train)
+print("E_val: {}, E_in: {}".format(E_val, E_in))
 print("Entrenamiento completado\n")
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Entrenando el modelo RF.", end=" ", flush=True)
-rf = RandomForestClassifier()
 
-rf.fit(datos_preprocesados, y_train)
-print(rf.score(datos_preprocesados, y_train))
-rf.predict(X_test)
-print(rf.score(X_test, y_test))
+# Fijamos la semilla
+np.random.seed(1)
+
+# Definimos el clasificador
+rf = RandomForestClassifier(criterion = 'gini',
+                            max_depth = None,
+                            min_samples_split = 2,
+                            min_samples_leaf = 1,
+                            min_weight_fraction_leaf = 0.0,
+                            max_features = 'auto',
+                            max_leaf_nodes = None,
+                            min_impurity_decrease = 0.0,
+                            bootstrap = True,
+                            oob_score = False,
+                            n_jobs = None,
+                            random_state = None,
+                            warm_start = False,
+                            class_weight = None,
+                            ccp_alpha = 0.0,
+                            max_samples = None)
+
+rf_pipe = Pipeline(steps=[('preprocesador', preprocesador),
+                      ('clf', rf)])
+
+params_rf = {'clf__n_estimators': [10, 11, 12, 13, 14, 15, 16]}
+
+grid = GridSearchCV(rf_pipe, params_rf, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
+grid.fit(X_train, y_train)
+clasificador = grid.best_estimator_
+E_val = 1 - grid.best_score_
+E_in = 1 - clasificador.score(X_train, y_train)
+print("E_val: {}, E_in: {}".format(E_val, E_in))
 print("Entrenamiento completado\n")
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
-print("Entrenando el modelo SVM.", end=" ", flush=True)
-svc = SVC()
-svc.fit(datos_preprocesados, y_train)
-print(svc.score(datos_preprocesados, y_train))
-svc.predict(X_test)
-print(svc.score(X_test, y_test))
+print("Entrenando el modelo SVC.", end=" ", flush=True)
+
+# Fijamos la semilla
+np.random.seed(1)
+
+# Definimos el clasificador
+svc = SVC(kernel = 'rbf',
+          shrinking = True,
+          probability = False,
+          tol = 1e-4,
+          cache_size = 200,
+          class_weight = None,
+          max_iter = -1)
+
+svc_pipe = Pipeline(steps=[('preprocesador', preprocesador),
+                      ('clf', svc)])
+
+params_svc = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01],
+                'clf__gamma': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
+
+grid = GridSearchCV(svc_pipe, params_svc, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
+grid.fit(X_train, y_train)
+clasificador = grid.best_estimator_
+E_val = 1 - grid.best_score_
+E_in = 1 - clasificador.score(X_train, y_train)
+print("E_val: {}, E_in: {}".format(E_val, E_in))
 print("Entrenamiento completado\n")
+
+
+input("\n----------- Pulse 'Enter' para terminar --------------\n\n\n")
