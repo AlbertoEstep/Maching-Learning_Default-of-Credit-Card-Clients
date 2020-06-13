@@ -246,15 +246,15 @@ np.random.seed(1)
 
 # Definimos el clasificador
 log = LogisticRegression(penalty='l1',
-                             dual = False,
-                             tol = 1e-4,
-                             fit_intercept = True,
-                             class_weight = None,
-                             random_state = None,
-                             solver = 'saga',
-                             max_iter = 1000,
-                             multi_class='auto',
-                             warm_start= False)
+                         dual = False,
+                         tol = 1e-4,
+                         fit_intercept = True,
+                         class_weight = None,
+                         random_state = None,
+                         solver = 'saga',
+                         max_iter = 1000,
+                         multi_class='auto',
+                         warm_start= False)
 
 log_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', log)])
