@@ -257,9 +257,10 @@ log = LogisticRegression(penalty='l1',
                          warm_start= False)
 
 log_pipe = Pipeline(steps=[('preprocesador', preprocesador),
-                      ('clf', log)])
+                           ('clf', log)])
 
-params_log = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
+#params_log = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
+params_log = {'clf__C': [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001]}
 
 grid = GridSearchCV(log_pipe, params_log, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
@@ -326,8 +327,10 @@ svc = SVC(kernel = 'rbf',
 svc_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', svc)])
 
-params_svc = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01],
-                'clf__gamma': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
+#params_svc = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01],
+#              'clf__gamma': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
+params_svc = {'clf__C': [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001],
+              'clf__gamma': [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001]}
 
 grid = GridSearchCV(svc_pipe, params_svc, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
