@@ -16,6 +16,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import plot_confusion_matrix
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -70,6 +71,7 @@ print("El número de atributos actual es de: {}".format(df.shape[1]))
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
+'''
 graf_bar(df, 'LIMIT_BAL', 10)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'BILL_AMT1', 10)
@@ -95,7 +97,7 @@ input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'PAY_AMT5', 10)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'PAY_AMT6', 10)
-
+'''
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Estudiamos la variable EDUCATION\n")
@@ -210,8 +212,8 @@ input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 print("Separacion en train y test\n")
 
 # Separamos el dataset original en atributos y etiquetas:
-X = df.iloc[:,:-1] # Todas las columnas menos la última
-y = df.iloc[:, -1] # Última columna
+X = df.loc[:, df.columns != 'default payment next month'] # Todas las columnas menos la objetivo
+y = df['default payment next month'].values
 
 # Dividimos los conjuntos en test (20 %) y train (80 %)
 
@@ -259,17 +261,39 @@ log = LogisticRegression(penalty='l1',
 log_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                            ('clf', log)])
 
-#params_log = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
-params_log = {'clf__C': [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001]}
+params_log = {'clf__C': [10.0, 1.0, 0.1, 0.01]}
 
 grid = GridSearchCV(log_pipe, params_log, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
 clasificador = grid.best_estimator_
+print("\n-------------------------------\n \
+Mejor clasificador: \n\t{}".format(clasificador.get_params))
 E_val = 1 - grid.best_score_
 E_in = 1 - clasificador.score(X_train, y_train)
-print("E_val: {}, E_in: {}".format(E_val, E_in))
-print("Entrenamiento completado\n")
+E_test = 1 - clasificador.score(X_test, y_test)
+print("\n\tE_val: {}\n\tE_in: {}\n\tE_test: {}".format(E_val, E_in, E_test))
+print("\n-------------------------------\nEntrenamiento completado\n")
 
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+print("Matriz de confusion\n")
+fig, ax = plt.subplots(figsize=(10, 8))
+ax.set(title="Matriz de confusión")
+matriz_confusion_no_normalizada = plot_confusion_matrix(clasificador, X_test, y_test,
+                                 cmap=plt.cm.Blues,
+                                 ax = ax,
+                                 values_format='.3g')
+
+
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+fig, ax = plt.subplots(figsize=(10, 8))
+print("Matriz de confusion normalizada\n")
+ax.set(title="Matriz de confusión normalizada")
+matriz_confusion_normalizada = plot_confusion_matrix(clasificador, X_test, y_test,
+                                 cmap=plt.cm.Blues,
+                                 normalize='true',
+                                 ax = ax)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Entrenando el modelo RF.", end=" ", flush=True)
@@ -298,16 +322,39 @@ rf = RandomForestClassifier(criterion = 'gini',
 rf_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', rf)])
 
-params_rf = {'clf__n_estimators': [10, 11, 12, 13, 14, 15, 16]}
+params_rf = {'clf__n_estimators': [10, 30, 50, 70, 90, 110]}
 
 grid = GridSearchCV(rf_pipe, params_rf, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
 clasificador = grid.best_estimator_
+print("\n-------------------------------\n \
+Mejor clasificador: \n\t{}".format(clasificador.get_params))
 E_val = 1 - grid.best_score_
 E_in = 1 - clasificador.score(X_train, y_train)
-print("E_val: {}, E_in: {}".format(E_val, E_in))
-print("Entrenamiento completado\n")
+E_test = 1 - clasificador.score(X_test, y_test)
+print("\n\tE_val: {}\n\tE_in: {}\n\tE_test: {}".format(E_val, E_in, E_test))
+print("\n-------------------------------\nEntrenamiento completado\n")
 
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+print("Matriz de confusion\n")
+fig, ax = plt.subplots(figsize=(10, 8))
+ax.set(title="Matriz de confusión")
+matriz_confusion_no_normalizada = plot_confusion_matrix(clasificador, X_test, y_test,
+                                 cmap=plt.cm.Blues,
+                                 ax = ax,
+                                 values_format='.3g')
+
+
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+fig, ax = plt.subplots(figsize=(10, 8))
+print("Matriz de confusion normalizada\n")
+ax.set(title="Matriz de confusión normalizada")
+matriz_confusion_normalizada = plot_confusion_matrix(clasificador, X_test, y_test,
+                                 cmap=plt.cm.Blues,
+                                 normalize='true',
+                                 ax = ax)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Entrenando el modelo SVC.", end=" ", flush=True)
@@ -327,18 +374,39 @@ svc = SVC(kernel = 'rbf',
 svc_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', svc)])
 
-#params_svc = {'clf__C': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01],
-#              'clf__gamma': [10.0, 2.0, 1.0, 0.1, 0.05, 0.02, 0.01]}
-params_svc = {'clf__C': [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001],
-              'clf__gamma': [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001]}
+params_svc = {'clf__C': [10.0, 1.0, 0.1, 0.01],
+              'clf__gamma': [10.0, 1.0, 0.1, 0.01]}
 
 grid = GridSearchCV(svc_pipe, params_svc, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
 clasificador = grid.best_estimator_
+print("\n-------------------------------\n \
+Mejor clasificador: \n\t{}".format(clasificador.get_params))
 E_val = 1 - grid.best_score_
 E_in = 1 - clasificador.score(X_train, y_train)
-print("E_val: {}, E_in: {}".format(E_val, E_in))
-print("Entrenamiento completado\n")
+E_test = 1 - clasificador.score(X_test, y_test)
+print("\n\tE_val: {}\n\tE_in: {}\n\tE_test: {}".format(E_val, E_in, E_test))
+print("\n-------------------------------\nEntrenamiento completado\n")
 
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+print("Matriz de confusion\n")
+fig, ax = plt.subplots(figsize=(10, 8))
+ax.set(title="Matriz de confusión")
+matriz_confusion_no_normalizada = plot_confusion_matrix(clasificador, X_test, y_test,
+                                 cmap=plt.cm.Blues,
+                                 ax = ax,
+                                 values_format='.3g')
+
+
+input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
+
+fig, ax = plt.subplots(figsize=(10, 8))
+print("Matriz de confusion normalizada\n")
+ax.set(title="Matriz de confusión normalizada")
+matriz_confusion_normalizada = plot_confusion_matrix(clasificador, X_test, y_test,
+                                 cmap=plt.cm.Blues,
+                                 normalize='true',
+                                 ax = ax)
 
 input("\n----------- Pulse 'Enter' para terminar --------------\n\n\n")
