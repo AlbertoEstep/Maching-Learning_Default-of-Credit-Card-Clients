@@ -366,10 +366,10 @@ np.random.seed(1)
 svc = SVC(kernel = 'rbf',
           shrinking = True,
           probability = False,
-          tol = 1e-4,
+          tol = 1e-2,
           cache_size = 200,
           class_weight = None,
-          max_iter = -1)
+          max_iter = 5000)
 
 svc_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', svc)])
