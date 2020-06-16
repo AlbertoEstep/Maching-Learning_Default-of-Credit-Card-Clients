@@ -261,10 +261,58 @@ log = LogisticRegression(penalty='l1',
 log_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                            ('clf', log)])
 
-params_log = {'clf__C': [10.0, 1.0, 0.1, 0.01]}
+#params_log = {'clf__C': [100.0,10.0, 1.0, 0.1, 0.01]}
+params_log = {'clf__C': [1,0.1, 0.01]}
 
 grid = GridSearchCV(log_pipe, params_log, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
+
+### Código búsqueda parámetros con grado de precisión de dos decimales ##
+
+def busqueda_inicial(X_train, y_train, pipe, param_name, params, scor, crossval=5):
+    grid = GridSearchCV(pipe, params, scoring=scor, cv=crossval) # Cross-validation para elegir hiperparámetros
+    grid.fit(X_train, y_train)
+
+    lis = np.array(grid.cv_results_['mean_test_score'])
+    pos1 = np.where(lis==np.max(lis))[0][0]
+    print(lis)
+    print(pos1)
+
+    if(pos1==len(lis)-1):
+        izq = grid.cv_results_['params'][pos1-1][param_name]
+        der = grid.cv_results_['params'][pos1][param_name]
+    else:
+        if(pos1==0):
+            izq = grid.cv_results_['params'][0][param_name]
+            der = grid.cv_results_['params'][1][param_name]
+        else:
+            if(grid.cv_results_['mean_test_score'][pos1-1]>grid.cv_results_['mean_test_score'][pos1+1]):
+                izq = grid.cv_results_['params'][pos1-1][param_name]
+                der = grid.cv_results_['params'][pos1][param_name]
+            else:
+                izq = grid.cv_results_['params'][pos1][param_name]
+                der = grid.cv_results_['params'][pos1+1][param_name]
+    return izq, der
+
+def busqueda_dicotomica(X_train, y_train, pipe, param_name, izq, der, scor, crossval=5):
+    if(abs(der-izq)>=0.1):
+        mid = (izq+der)/2
+        params = {'clf__C': [izq, mid, der]}
+        izq, der, grid = busqueda_inicial(X_train, y_train, pipe, param_name, params, scor)
+        return busqueda_dicotomica(X_train, y_train, pipe, param_name, izq, der, scor)
+    else:
+        return (izq+der)/2
+
+#################################################################################
+
+iz, de = busqueda_inicial(X_train, y_train, log_pipe, 'clf__C', params_log, 'accuracy')
+print("Viene iz y de")
+print(iz)
+print(de)
+optimo = busqueda_dicotomica(X_train, y_train, log_pipe, 'clf__C', iz, de, 'accuracy')
+print("Optimo:")
+print(optimo)
+
 clasificador = grid.best_estimator_
 print("\n-------------------------------\n \
 Mejor clasificador: \n\t{}".format(clasificador.get_params))
