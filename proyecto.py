@@ -393,7 +393,8 @@ matriz_confusion_no_normalizada = plot_confusion_matrix(clasificador, X_test, y_
                                  cmap=plt.cm.Blues,
                                  ax = ax,
                                  values_format='.3g')
-
+plt.gcf().canvas.set_window_title("Proyecto AA")
+plt.show()
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
@@ -404,6 +405,9 @@ matriz_confusion_normalizada = plot_confusion_matrix(clasificador, X_test, y_tes
                                  cmap=plt.cm.Blues,
                                  normalize='true',
                                  ax = ax)
+plt.gcf().canvas.set_window_title("Proyecto AA")
+plt.show()
+
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Entrenando el modelo SVC.", end=" ", flush=True)
@@ -426,6 +430,15 @@ svc_pipe = Pipeline(steps=[('preprocesador', preprocesador),
 
 params_svc = {'clf__C': [100.0, 10.0, 1.0, 0.1, 0.01]}
 
+iz, de, grid = busqueda_inicial(X_train, y_train, svc_pipe, 'clf__C', params_svc, 'accuracy')
+print("Viene iz y de")
+print(iz)
+print(de)
+print(grid.cv_results_)
+grid = busqueda_dicotomica(X_train, y_train, svc_pipe, 'clf__C', iz, de, 'accuracy')
+print("Optimo:")
+print(grid)
+
 grid = GridSearchCV(svc_pipe, params_svc, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
 clasificador = grid.best_estimator_
@@ -446,7 +459,8 @@ matriz_confusion_no_normalizada = plot_confusion_matrix(clasificador, X_test, y_
                                  cmap=plt.cm.Blues,
                                  ax = ax,
                                  values_format='.3g')
-
+plt.gcf().canvas.set_window_title("Proyecto AA")
+plt.show()
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
@@ -457,5 +471,7 @@ matriz_confusion_normalizada = plot_confusion_matrix(clasificador, X_test, y_tes
                                  cmap=plt.cm.Blues,
                                  normalize='true',
                                  ax = ax)
+plt.gcf().canvas.set_window_title("Proyecto AA")
+plt.show()
 
 input("\n----------- Pulse 'Enter' para terminar --------------\n\n\n")
