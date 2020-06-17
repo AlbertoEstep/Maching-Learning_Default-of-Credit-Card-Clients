@@ -261,11 +261,7 @@ log = LogisticRegression(penalty='l1',
 log_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                            ('clf', log)])
 
-#params_log = {'clf__C': [100.0,10.0, 1.0, 0.1, 0.01]}
-params_log = {'clf__C': [1,0.1, 0.01]}
-
-grid = GridSearchCV(log_pipe, params_log, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
-grid.fit(X_train, y_train)
+params_log = {'clf__C': [100.0, 10.0, 1.0, 0.1, 0.01]}
 
 ### Código búsqueda parámetros con grado de precisión de dos decimales ##
 
@@ -292,26 +288,27 @@ def busqueda_inicial(X_train, y_train, pipe, param_name, params, scor, crossval=
             else:
                 izq = grid.cv_results_['params'][pos1][param_name]
                 der = grid.cv_results_['params'][pos1+1][param_name]
-    return izq, der
+    return izq, der, grid
 
 def busqueda_dicotomica(X_train, y_train, pipe, param_name, izq, der, scor, crossval=5):
-    if(abs(der-izq)>=0.1):
+    while(abs(der-izq)>=0.01):
         mid = (izq+der)/2
-        params = {'clf__C': [izq, mid, der]}
+        params = {param_name: [izq, mid, der]}
         izq, der, grid = busqueda_inicial(X_train, y_train, pipe, param_name, params, scor)
-        return busqueda_dicotomica(X_train, y_train, pipe, param_name, izq, der, scor)
-    else:
-        return (izq+der)/2
+    return grid
 
 #################################################################################
 
-iz, de = busqueda_inicial(X_train, y_train, log_pipe, 'clf__C', params_log, 'accuracy')
+
+iz, de, grid = busqueda_inicial(X_train, y_train, log_pipe, 'clf__C', params_log, 'accuracy')
 print("Viene iz y de")
 print(iz)
 print(de)
-optimo = busqueda_dicotomica(X_train, y_train, log_pipe, 'clf__C', iz, de, 'accuracy')
+print(grid.cv_results_)
+grid = busqueda_dicotomica(X_train, y_train, log_pipe, 'clf__C', iz, de, 'accuracy')
 print("Optimo:")
-print(optimo)
+print(grid)
+
 
 clasificador = grid.best_estimator_
 print("\n-------------------------------\n \
@@ -331,7 +328,8 @@ matriz_confusion_no_normalizada = plot_confusion_matrix(clasificador, X_test, y_
                                  cmap=plt.cm.Blues,
                                  ax = ax,
                                  values_format='.3g')
-
+plt.gcf().canvas.set_window_title("Proyecto AA")
+plt.show()
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
@@ -342,6 +340,8 @@ matriz_confusion_normalizada = plot_confusion_matrix(clasificador, X_test, y_tes
                                  cmap=plt.cm.Blues,
                                  normalize='true',
                                  ax = ax)
+plt.gcf().canvas.set_window_title("Proyecto AA")
+plt.show()
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Entrenando el modelo RF.", end=" ", flush=True)
