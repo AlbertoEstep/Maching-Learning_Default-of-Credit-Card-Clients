@@ -352,11 +352,11 @@ np.random.seed(1)
 # Definimos el clasificador
 rf = RandomForestClassifier(criterion = 'gini',
                             max_depth = None,
-                            min_samples_split = 2,
+                            min_samples_split = 5,
                             min_samples_leaf = 1,
                             min_weight_fraction_leaf = 0.0,
                             max_features = 'auto',
-                            max_leaf_nodes = None,
+                            max_leaf_nodes = 2000,
                             min_impurity_decrease = 0.0,
                             bootstrap = True,
                             oob_score = False,
@@ -364,8 +364,9 @@ rf = RandomForestClassifier(criterion = 'gini',
                             random_state = None,
                             warm_start = False,
                             class_weight = None,
-                            ccp_alpha = 0.0,
-                            max_samples = None)
+                            ccp_alpha = 0.0001,
+                            max_samples = None,
+                            n_estimators = 100)
 
 rf_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', rf)])
@@ -413,6 +414,7 @@ np.random.seed(1)
 # Definimos el clasificador
 svc = SVC(kernel = 'rbf',
           shrinking = True,
+          gamma='scale',
           probability = False,
           tol = 1e-2,
           cache_size = 200,
@@ -422,8 +424,7 @@ svc = SVC(kernel = 'rbf',
 svc_pipe = Pipeline(steps=[('preprocesador', preprocesador),
                       ('clf', svc)])
 
-params_svc = {'clf__C': [10.0, 1.0, 0.1, 0.01],
-              'clf__gamma': [10.0, 1.0, 0.1, 0.01]}
+params_svc = {'clf__C': [100.0, 10.0, 1.0, 0.1, 0.01]}
 
 grid = GridSearchCV(svc_pipe, params_svc, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
 grid.fit(X_train, y_train)
