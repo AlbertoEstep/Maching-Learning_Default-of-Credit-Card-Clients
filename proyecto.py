@@ -71,7 +71,6 @@ print("El número de atributos actual es de: {}".format(df.shape[1]))
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
-'''
 graf_bar(df, 'LIMIT_BAL', 10)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'BILL_AMT1', 10)
@@ -97,7 +96,7 @@ input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'PAY_AMT5', 10)
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 graf_bar(df, 'PAY_AMT6', 10)
-'''
+
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
 print("Estudiamos la variable EDUCATION\n")
@@ -299,7 +298,6 @@ def busqueda_dicotomica(X_train, y_train, pipe, param_name, izq, der, scor, cros
 
 #################################################################################
 
-
 iz, de, grid = busqueda_inicial(X_train, y_train, log_pipe, 'clf__C', params_log, 'accuracy')
 print("Viene iz y de")
 print(iz)
@@ -318,6 +316,7 @@ E_in = 1 - clasificador.score(X_train, y_train)
 E_test = 1 - clasificador.score(X_test, y_test)
 print("\n\tE_val: {}\n\tE_in: {}\n\tE_test: {}".format(E_val, E_in, E_test))
 print("\n-------------------------------\nEntrenamiento completado\n")
+
 
 input("\n----------- Pulse 'Enter' para continuar --------------\n\n\n")
 
@@ -373,8 +372,28 @@ rf_pipe = Pipeline(steps=[('preprocesador', preprocesador),
 
 params_rf = {'clf__n_estimators': [10, 30, 50, 70, 90, 110]}
 
-grid = GridSearchCV(rf_pipe, params_rf, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
-grid.fit(X_train, y_train)
+### Código búsqueda parámetros con grado de precisión de entero ##
+
+def busqueda_dicotomica_entera(X_train, y_train, pipe, param_name, izq, der, scor, crossval=5):
+    while(abs(der-izq)>1):
+        mid = int((izq+der)/2)
+        izq = int(izq)
+        der = int(der)
+        params = {param_name: [izq, mid, der]}
+        izq, der, grid = busqueda_inicial(X_train, y_train, pipe, param_name, params, scor)
+    return grid
+
+#################################################################################
+
+iz, de, grid = busqueda_inicial(X_train, y_train, rf_pipe, 'clf__n_estimators', params_rf, 'accuracy')
+print("Viene iz y de")
+print(iz)
+print(de)
+print(grid.cv_results_)
+grid = busqueda_dicotomica_entera(X_train, y_train, rf_pipe, 'clf__n_estimators', iz, de, 'accuracy')
+print("Optimo:")
+print(grid)
+
 clasificador = grid.best_estimator_
 print("\n-------------------------------\n \
 Mejor clasificador: \n\t{}".format(clasificador.get_params))
@@ -439,8 +458,6 @@ grid = busqueda_dicotomica(X_train, y_train, svc_pipe, 'clf__C', iz, de, 'accura
 print("Optimo:")
 print(grid)
 
-grid = GridSearchCV(svc_pipe, params_svc, scoring='accuracy', cv=5) # Cross-validation para elegir hiperparámetros
-grid.fit(X_train, y_train)
 clasificador = grid.best_estimator_
 print("\n-------------------------------\n \
 Mejor clasificador: \n\t{}".format(clasificador.get_params))
